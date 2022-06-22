@@ -13,22 +13,26 @@ jobs:
           sudo apt-get update
           sudo apt-get install --no-install-recommends -y terraform=1.1.9
 
-      - name: Install terragrunt
+      - name: Setup terragrunt
         run: |
           # With the latest terragrunt, its checking mechanism causes an error,
           # so pin a version
           sudo curl -Lo /usr/local/bin/terragrunt https://github.com/gruntwork-io/terragrunt/releases/download/v0.37.1/terragrunt_linux_amd64
           sudo chmod +x /usr/local/bin/terragrunt
+          cat <<EOL >> $GITHUB_ENV
+          TERRAGRUNT_TFPATH=/usr/bin/terraform
+          EOL
+
+      - uses: actions/checkout@v2
+
+      - name: Plan
+        run: |
+          cd terraform/
+          terragrunt plan -no-color -input=false
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
+        if: ${{ always() }}
         with:
           timeout-minutes: 15
           limit-access-to-actor: true
-
-      # - uses: actions/checkout@v2
-
-      # - name: Plan
-      #   run: |
-      #     cd terraform/
-      #     terragrunt plan -no-color -input=false
